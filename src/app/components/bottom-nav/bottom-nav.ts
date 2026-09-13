@@ -12,6 +12,13 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
         </svg>
         <span>Pokédex</span>
       </a>
+      <a class="bottom-nav__item" routerLink="/compare" routerLinkActive="bottom-nav__item--active">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M16 3h5v5"/><path d="M8 3H3v5"/><path d="M12 22v-8.3a4 4 0 0 0-1.172-2.872L3 3"/>
+          <path d="m15 9 6-6"/>
+        </svg>
+        <span>Comparar</span>
+      </a>
       <a class="bottom-nav__item" routerLink="/favorites" routerLinkActive="bottom-nav__item--active">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
@@ -32,7 +39,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
       justify-content: center;
       gap: 16px;
       padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
-      background: rgba(255, 255, 255, 0.92);
+      background: color-mix(in srgb, var(--color-bg, #fff) 92%, transparent);
       backdrop-filter: blur(8px);
       border-top: 1px solid var(--color-border, #e5e5e5);
       z-index: 100;

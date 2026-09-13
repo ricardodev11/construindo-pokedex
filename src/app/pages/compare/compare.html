@@ -1,0 +1,162 @@
+@let slotAState = slotA();
+@let slotBState = slotB();
+
+<div class="compare">
+  <header class="compare__header">
+    <h1>Comparar</h1>
+    <p class="compare__hint">Busque dois Pokémon para comparar os status lado a lado.</p>
+  </header>
+
+  <div class="compare__slots">
+    <section class="compare-slot" aria-label="Primeiro Pokémon">
+      <div class="compare-slot__search">
+        <label class="visually-hidden" for="compare-a">Buscar o primeiro Pokémon</label>
+        <input
+          id="compare-a"
+          type="search"
+          class="compare-slot__input"
+          placeholder="Nome ou número (ex.: pikachu, 6)"
+          [(ngModel)]="slotAState.query"
+          (ngModelChange)="updateQuery('A', $event)"
+          (keydown.enter)="search('A')"
+        />
+        <button type="button" class="compare-slot__go" (click)="search('A')">Buscar</button>
+      </div>
+
+      @if (suggestionsA().length) {
+        <ul class="compare-slot__suggestions" role="listbox" aria-label="Sugestões">
+          @for (name of suggestionsA(); track name) {
+            <li>
+              <button type="button" (click)="pickSuggestion('A', name)">{{ name }}</button>
+            </li>
+          }
+        </ul>
+      }
+
+      @if (slotAState.loading) {
+        <p class="notice" role="status">Buscando…</p>
+      }
+      @if (slotAState.notFound) {
+        <p class="notice" role="status">Nenhum Pokémon encontrado.</p>
+      }
+      @if (slotAState.error) {
+        <p class="notice" role="status">Não foi possível buscar. Verifique sua conexão.</p>
+      }
+
+      @if (slotAState.pokemon; as pokemon) {
+        <div class="compare-slot__result">
+          <img [src]="pokemon.imageUrl" [alt]="pokemon.name" width="80" height="80" />
+          <div>
+            <p class="compare-slot__name">
+              {{ pokemon.name }} <span class="compare-slot__id">#{{ pokemon.formattedId }}</span>
+            </p>
+            <ul class="type-badges" aria-label="Tipos">
+              @for (type of pokemon.types; track type) {
+                <li class="type-badge" [style.background]="typeColor(type)">{{ type }}</li>
+              }
+            </ul>
+          </div>
+          <button type="button" class="compare-slot__clear" (click)="clear('A')">Trocar</button>
+        </div>
+      }
+    </section>
+
+    <section class="compare-slot" aria-label="Segundo Pokémon">
+      <div class="compare-slot__search">
+        <label class="visually-hidden" for="compare-b">Buscar o segundo Pokémon</label>
+        <input
+          id="compare-b"
+          type="search"
+          class="compare-slot__input"
+          placeholder="Nome ou número (ex.: charizard, 6)"
+          [(ngModel)]="slotBState.query"
+          (ngModelChange)="updateQuery('B', $event)"
+          (keydown.enter)="search('B')"
+        />
+        <button type="button" class="compare-slot__go" (click)="search('B')">Buscar</button>
+      </div>
+
+      @if (suggestionsB().length) {
+        <ul class="compare-slot__suggestions" role="listbox" aria-label="Sugestões">
+          @for (name of suggestionsB(); track name) {
+            <li>
+              <button type="button" (click)="pickSuggestion('B', name)">{{ name }}</button>
+            </li>
+          }
+        </ul>
+      }
+
+      @if (slotBState.loading) {
+        <p class="notice" role="status">Buscando…</p>
+      }
+      @if (slotBState.notFound) {
+        <p class="notice" role="status">Nenhum Pokémon encontrado.</p>
+      }
+      @if (slotBState.error) {
+        <p class="notice" role="status">Não foi possível buscar. Verifique sua conexão.</p>
+      }
+
+      @if (slotBState.pokemon; as pokemon) {
+        <div class="compare-slot__result">
+          <img [src]="pokemon.imageUrl" [alt]="pokemon.name" width="80" height="80" />
+          <div>
+            <p class="compare-slot__name">
+              {{ pokemon.name }} <span class="compare-slot__id">#{{ pokemon.formattedId }}</span>
+            </p>
+            <ul class="type-badges" aria-label="Tipos">
+              @for (type of pokemon.types; track type) {
+                <li class="type-badge" [style.background]="typeColor(type)">{{ type }}</li>
+              }
+            </ul>
+          </div>
+          <button type="button" class="compare-slot__clear" (click)="clear('B')">Trocar</button>
+        </div>
+      }
+    </section>
+  </div>
+
+  @if (comparison(); as result) {
+    <section class="compare-grid" aria-label="Comparação de status">
+      @for (side of [result.a, result.b]; track side.id) {
+        <div class="compare-col">
+          <img class="compare-col__art" [src]="side.imageUrl" [alt]="side.name" />
+          <h2 class="compare-col__name">
+            {{ side.name }} <span class="compare-col__id">#{{ side.formattedId }}</span>
+          </h2>
+          <ul class="compare-col__badges" aria-label="Tipos">
+            @for (type of side.types; track type) {
+              <li class="type-badge" [style.background]="typeColor(type)">{{ type }}</li>
+            }
+          </ul>
+          <dl class="compare-col__measures">
+            <div>
+              <dt>Altura</dt>
+              <dd>{{ side.heightMeters.toFixed(1) }} m</dd>
+            </div>
+            <div>
+              <dt>Peso</dt>
+              <dd>{{ side.weightKg.toFixed(1) }} kg</dd>
+            </div>
+          </dl>
+          <ul class="compare-col__stats" aria-label="Status base">
+            @for (stat of side.stats; track stat.name) {
+              <li>
+                <div class="stat-label">
+                  <span>{{ labelFor(stat.name) }}</span>
+                  <span>{{ stat.value }}</span>
+                </div>
+                <div class="stat-bar" role="img" [attr.aria-label]="labelFor(stat.name) + ': ' + stat.value">
+                  <div
+                    class="stat-bar__fill"
+                    [style.width.%]="(stat.value / 255) * 100"
+                    [style.background]="statColor(stat.value)"
+                  ></div>
+                </div>
+              </li>
+            }
+          </ul>
+        </div>
+      }
+    </section>
+  }
+</div>

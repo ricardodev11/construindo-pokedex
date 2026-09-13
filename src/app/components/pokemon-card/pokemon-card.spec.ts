@@ -70,4 +70,44 @@ describe('PokemonCardComponent', () => {
       'Remover pikachu dos favoritos',
     );
   });
+
+  it('mostra a pokébola de captura quando o Pokémon é favoritado', () => {
+    fixture.componentRef.setInput('favorite', true);
+    fixture.detectChanges();
+
+    expect(component.isCapturing()).toBe(true);
+
+    const capture: HTMLElement | null =
+      fixture.nativeElement.querySelector('.pokeball-capture');
+
+    expect(capture).not.toBeNull();
+  });
+
+  it('não dispara nova captura quando o Pokémon é removido dos favoritos', () => {
+    fixture.componentRef.setInput('favorite', true);
+    fixture.detectChanges();
+    expect(component.isCapturing()).toBe(true);
+
+    fixture.componentRef.setInput('favorite', false);
+    fixture.detectChanges();
+
+    expect(component.isCapturing()).toBe(true);
+  });
+
+  it('encerra a captura após o tempo da animação', () => {
+    vi.useFakeTimers();
+
+    try {
+      fixture.componentRef.setInput('favorite', true);
+      fixture.detectChanges();
+      expect(component.isCapturing()).toBe(true);
+
+      vi.advanceTimersByTime(750);
+      fixture.detectChanges();
+
+      expect(component.isCapturing()).toBe(false);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });

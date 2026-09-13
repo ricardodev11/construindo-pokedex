@@ -37,7 +37,7 @@ describe('Pokedex', () => {
     fixture.detectChanges();
 
     const req = httpMock.expectOne(
-      'https://pokeapi.co/api/v2/pokemon?limit=12&offset=0',
+      'https://pokeapi.co/api/v2/pokemon?limit=55&offset=0',
     );
     expect(req.request.method).toBe('GET');
     req.flush({
@@ -64,7 +64,7 @@ describe('Pokedex', () => {
   it('carrega a lista de tipos para o filtro', () => {
     fixture.detectChanges();
 
-    httpMock.expectOne('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
+    httpMock.expectOne('https://pokeapi.co/api/v2/pokemon?limit=55&offset=0')
       .flush({
         count: 1351,
         next: null,
@@ -83,5 +83,39 @@ describe('Pokedex', () => {
 
     expect(component.types()).toHaveLength(1);
     expect(component.types()[0].name).toBe('fire');
+  });
+
+  it('próxima página carrega fora do modo filtro sem dupla paginação', () => {
+    fixture.detectChanges();
+    httpMock.expectOne('https://pokeapi.co/api/v2/pokemon?limit=55&offset=0')
+      .flush({
+        count: 1351,
+        next: null,
+        previous: null,
+        results: [{ name: 'bulbasaur', url: 'https://pokeapi.co/api/v2/pokemon/1/' }],
+      });
+    httpMock.expectOne('https://pokeapi.co/api/v2/type').flush({
+      count: 0,
+      next: null,
+      previous: null,
+      results: [],
+    });
+
+    component.nextPage();
+
+    const nextReq = httpMock.expectOne(
+      'https://pokeapi.co/api/v2/pokemon?limit=55&offset=55',
+    );
+    expect(nextReq.request.method).toBe('GET');
+    nextReq.flush({
+      count: 1351,
+      next: null,
+      previous: null,
+      results: [{ name: 'charmander', url: 'https://pokeapi.co/api/v2/pokemon/4/' }],
+    });
+
+    expect(component.pageNumber()).toBe(2);
+    expect(component.shownCards()).toHaveLength(1);
+    expect(component.shownCards()[0].name).toBe('charmander');
   });
 });

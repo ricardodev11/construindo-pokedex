@@ -31,7 +31,7 @@ export class Pokedex implements OnInit {
   readonly isFiltering = signal(false);
   readonly filterError = signal<string | null>(null);
 
-  readonly pageSize = 12;
+  readonly pageSize = 55;
 
   readonly isFiltered = computed(() => this.selectedType() !== '');
   readonly isSearchMode = computed(
@@ -42,7 +42,7 @@ export class Pokedex implements OnInit {
     if (this.isFiltered()) {
       return slicePage(this.typePokemons(), this.pageNumber(), this.pageSize);
     }
-    return slicePage(this.pokemons(), this.pageNumber(), this.pageSize);
+    return this.pokemons();
   });
 
   readonly shownTotalPages = computed(() =>

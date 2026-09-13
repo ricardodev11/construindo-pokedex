@@ -3,7 +3,7 @@
 </nav>
 
 @if (isLoading()) {
-  <p>Carregando Pokémon...</p>
+  <p aria-live="polite">Carregando Pokémon...</p>
 } @else if (isNotFound()) {
   <p role="alert">Não encontramos esse Pokémon. Confira o número na Pokédex.</p>
   <a routerLink="/">Voltar à Pokédex</a>

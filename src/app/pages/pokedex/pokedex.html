@@ -1,34 +1,36 @@
-<header class="pokedex-header">
-  <h1>Pokédex</h1>
+<header>
+  <h1 class="pokedex-title">Pokédex</h1>
 
-  <form (ngSubmit)="onSearchSubmit()" class="pokedex-search">
-    <label for="pokemon-search">Buscar Pokémon por nome ou número</label>
-    <input
-      id="pokemon-search"
-      name="pokemon-search"
-      type="search"
-      placeholder="Ex.: pikachu ou 25"
-      [(ngModel)]="searchQuery"
-    />
-    <button type="submit">Buscar</button>
-    @if (searchResult() || searchError()) {
-      <button type="button" (click)="clearSearch()">Limpar</button>
-    }
-  </form>
-
-  <div class="pokedex-filter">
-    <label for="type-filter">Filtrar por tipo</label>
-    <select id="type-filter" name="type-filter" [(ngModel)]="selectedType" (ngModelChange)="onTypeChange()">
-      <option value="">Todos</option>
-      @for (type of types(); track type.name) {
-        <option [value]="type.name">{{ type.name }}</option>
+  <div class="pokedex-toolbar">
+    <form (ngSubmit)="onSearchSubmit()" class="pokedex-search">
+      <label for="pokemon-search">Buscar Pokémon por nome ou número</label>
+      <input
+        id="pokemon-search"
+        name="pokemon-search"
+        type="search"
+        placeholder="Ex.: pikachu ou 25"
+        [(ngModel)]="searchQuery"
+      />
+      <button type="submit">Buscar</button>
+      @if (searchResult() || searchError()) {
+        <button type="button" (click)="clearSearch()">Limpar</button>
       }
-    </select>
+    </form>
+
+    <div class="pokedex-filter">
+      <label for="type-filter">Filtrar por tipo</label>
+      <select id="type-filter" name="type-filter" [(ngModel)]="selectedType" (ngModelChange)="onTypeChange()">
+        <option value="">Todos</option>
+        @for (type of types(); track type.name) {
+          <option [value]="type.name">{{ type.name }}</option>
+        }
+      </select>
+    </div>
   </div>
 </header>
 
 @if (isLoading() || isSearching() || isFiltering()) {
-  <p>Carregando Pokémon...</p>
+  <p aria-live="polite">Carregando Pokémon...</p>
 } @else if (errorMessage() || filterError()) {
   <p role="alert">{{ errorMessage() ?? filterError() }}</p>
   <button type="button" (click)="retryCurrentView()">Tentar novamente</button>

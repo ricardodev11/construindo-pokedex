@@ -13,6 +13,7 @@ import { debounceTime, distinctUntilChanged, map, of, switchMap } from 'rxjs';
 import { PokemonCardComponent } from '../../components/pokemon-card/pokemon-card';
 import { DEFAULT_TYPE_COLOR, TYPE_COLORS } from '../../constants/pokemon-types';
 import { FavoritesService } from '../../core/services/favorites.service';
+import { ThemeService } from '../../core/services/theme.service';
 import { PokemonApiService } from '../../core/services/pokemon-api.service';
 import { toPokemonCard, toPokemonCardFromDetail } from '../../mappers/pokemon.mapper';
 import { PokemonCard } from '../../models/pokemon.models';
@@ -26,6 +27,7 @@ import { PokemonCard } from '../../models/pokemon.models';
 export class Home implements OnInit {
   private readonly api = inject(PokemonApiService);
   protected readonly favorites = inject(FavoritesService);
+  protected readonly theme = inject(ThemeService);
 
   private readonly PAGE_SIZE = 20;
   private readonly EXCLUDED_TYPES = new Set(['unknown', 'shadow']);

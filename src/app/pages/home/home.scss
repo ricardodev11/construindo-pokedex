@@ -14,7 +14,7 @@
   gap: var(--space-3);
   padding: calc(var(--space-3) + env(safe-area-inset-top)) var(--space-4);
   margin: calc(-1 * var(--space-4)) calc(-1 * var(--space-4)) 0;
-  background: rgba(250, 250, 250, 0.92);
+  background: color-mix(in srgb, var(--color-bg) 92%, transparent);
   backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--color-border);
 }
@@ -23,6 +23,20 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
+}
+
+.home__theme-toggle {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  margin-left: auto;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
 }
 
 .home__title {
@@ -117,7 +131,12 @@
 .skeleton-card {
   height: 190px;
   border-radius: 18px;
-  background: linear-gradient(100deg, #ececec 40%, #f6f6f6 50%, #ececec 60%);
+  background: linear-gradient(
+    100deg,
+    var(--color-skeleton-a) 40%,
+    var(--color-skeleton-b) 50%,
+    var(--color-skeleton-a) 60%
+  );
   background-size: 200% 100%;
   animation: shimmer 1.2s infinite;
 }

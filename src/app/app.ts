@@ -1,12 +1,11 @@
-import { Component, signal } from '@angular/core';
+import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { BottomNavComponent } from './components/bottom-nav/bottom-nav';
 
 @Component({
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, BottomNavComponent],
   selector: 'app-root',
   styleUrl: './app.scss',
   templateUrl: './app.html',
 })
-export class App {
-  protected readonly title = signal('pokedex-interativa');
-}
+export class App {}

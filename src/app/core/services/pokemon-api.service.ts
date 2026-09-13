@@ -4,8 +4,11 @@ import { Observable } from 'rxjs';
 
 import {
   PokemonDetail,
+  PokemonEvolution,
   PokemonListResponse,
+  PokemonSpecies,
   PokemonTypeDetail,
+  PokemonTypeDetailFull,
 } from '../../models/pokemon-api.models';
 
 @Injectable({ providedIn: 'root' })
@@ -35,6 +38,24 @@ export class PokemonApiService {
   getPokemonByType(typeName: string): Observable<PokemonTypeDetail> {
     return this.http.get<PokemonTypeDetail>(
       `${this.baseUrl}type/${typeName}`,
+    );
+  }
+
+  getPokemonSpecies(idOrName: string | number): Observable<PokemonSpecies> {
+    return this.http.get<PokemonSpecies>(
+      `${this.baseUrl}pokemon-species/${idOrName}`,
+    );
+  }
+
+  getTypeDamageRelations(typeName: string): Observable<PokemonTypeDetailFull> {
+    return this.http.get<PokemonTypeDetailFull>(
+      `${this.baseUrl}type/${typeName}`,
+    );
+  }
+
+  getEvolutionChain(id: number): Observable<PokemonEvolution> {
+    return this.http.get<PokemonEvolution>(
+      `${this.baseUrl}evolution-chain/${id}`,
     );
   }
 }

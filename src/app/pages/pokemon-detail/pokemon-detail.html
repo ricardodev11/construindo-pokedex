@@ -1,73 +1,189 @@
-<nav class="detail-nav" aria-label="Navegação">
-  <a routerLink="/">← Voltar à Pokédex</a>
-</nav>
-
 @if (isLoading()) {
-  <p aria-live="polite">Carregando Pokémon...</p>
+  <div class="detail-loading" aria-live="polite">
+    <p>Carregando Pokémon...</p>
+  </div>
 } @else if (isNotFound()) {
-  <p role="alert">Não encontramos esse Pokémon. Confira o número na Pokédex.</p>
-  <a routerLink="/">Voltar à Pokédex</a>
+  <div class="detail-state" role="alert">
+    <p>Não encontramos esse Pokémon. Confira o número na Pokédex.</p>
+    <a class="btn-primary" routerLink="/">Voltar à Pokédex</a>
+  </div>
 } @else if (errorMessage()) {
-  <p role="alert">{{ errorMessage() }}</p>
-  <button type="button" (click)="load()">Tentar novamente</button>
+  <div class="detail-state" role="alert">
+    <p>{{ errorMessage() }}</p>
+    <button type="button" class="btn-primary" (click)="load()">Tentar novamente</button>
+  </div>
 } @else {
   @let pkm = pokemon()!;
+  @let primaryType = pkm.types[0] ?? 'normal';
 
-  <article class="detail-card">
-    <div class="detail-visual">
-      <img
-        [src]="pkm.imageUrl"
-        [alt]="'Ilustração oficial de ' + pkm.name"
-      />
+  <header class="hero" [style.background]="'linear-gradient(160deg, ' + typeColor(primaryType) + ', ' + typeColor(primaryType) + 'cc)'">
+    <div class="hero__inner">
+      <a class="hero__back" routerLink="/" aria-label="Voltar à Pokédex">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="m15 18-6-6 6-6"/>
+        </svg>
+      </a>
+
+      @if (favorite()) {
+        <button type="button" class="hero__fav hero__fav--active" aria-label="Remover dos favoritos" (click)="toggleFavorite()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+          </svg>
+        </button>
+      } @else {
+        <button type="button" class="hero__fav" aria-label="Favoritar Pokémon" (click)="toggleFavorite()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+          </svg>
+        </button>
+      }
+
+      <div class="hero__info">
+        <span class="hero__id">Nº {{ pkm.formattedId }}</span>
+        <h1 class="hero__name">{{ pkm.name }}</h1>
+        <ul class="hero__types" aria-label="Tipos">
+          @for (type of pkm.types; track type) {
+            <li>
+              <span class="type-badge" [style.background]="typeColor(type)">{{ type }}</span>
+            </li>
+          }
+        </ul>
+      </div>
     </div>
+  </header>
 
-    <div class="detail-info">
-      <span class="detail-id">#{{ pkm.formattedId }}</span>
-      <h2 class="detail-name">{{ pkm.name }}</h2>
+  <div class="artwork">
+    <img
+      class="artwork__image"
+      [src]="pkm.imageUrl"
+      [alt]="'Ilustração oficial de ' + pkm.name"
+    />
+  </div>
 
-      <ul class="detail-types" aria-label="Tipos">
-        @for (type of pkm.types; track type) {
-          <li><span class="type-badge">{{ type }}</span></li>
+  <div class="tabs" role="tablist" aria-label="Informações do Pokémon">
+    <button
+      type="button"
+      class="tabs__tab"
+      role="tab"
+      [class.tabs__tab--active]="activeTab() === 'sobre'"
+      [attr.aria-selected]="activeTab() === 'sobre'"
+      (click)="activeTab.set('sobre')"
+    >
+      Sobre
+    </button>
+    <button
+      type="button"
+      class="tabs__tab"
+      role="tab"
+      [class.tabs__tab--active]="activeTab() === 'status'"
+      [attr.aria-selected]="activeTab() === 'status'"
+      (click)="activeTab.set('status')"
+    >
+      Status
+    </button>
+    <button
+      type="button"
+      class="tabs__tab"
+      role="tab"
+      [class.tabs__tab--active]="activeTab() === 'evolucao'"
+      [attr.aria-selected]="activeTab() === 'evolucao'"
+      (click)="activeTab.set('evolucao')"
+    >
+      Evolução
+    </button>
+  </div>
+
+  @switch (activeTab()) {
+    @case ('sobre') {
+      <section class="panel" aria-label="Sobre o Pokémon">
+        @if (breeding()?.flavorText) {
+          <p class="panel__flavor">{{ breeding()?.flavorText }}</p>
         }
-      </ul>
 
-      <dl class="detail-data">
-        <div>
-          <dt>Altura</dt>
-          <dd>{{ pkm.heightMeters.toFixed(1) }} m</dd>
+        <div class="panel__grid">
+          <div class="panel__item">
+            <span class="panel__label">Altura</span>
+            <span class="panel__value">{{ pkm.heightMeters.toFixed(1) }} m</span>
+          </div>
+          <div class="panel__item">
+            <span class="panel__label">Peso</span>
+            <span class="panel__value">{{ pkm.weightKg.toFixed(1) }} kg</span>
+          </div>
+          <div class="panel__item">
+            <span class="panel__label">Espécie</span>
+            <span class="panel__value">{{ breeding()?.speciesLabel }}</span>
+          </div>
+          <div class="panel__item">
+            <span class="panel__label">Habitat</span>
+            <span class="panel__value">{{ breeding()?.habitat ?? '—' }}</span>
+          </div>
         </div>
-        <div>
-          <dt>Peso</dt>
-          <dd>{{ pkm.weightKg.toFixed(1) }} kg</dd>
-        </div>
-      </dl>
 
-      <h3 class="detail-subtitle">Habilidades</h3>
-      <ul class="detail-abilities">
-        @for (ability of pkm.abilities; track ability) {
-          <li>{{ ability }}</li>
-        }
-      </ul>
-    </div>
-  </article>
+        <h2 class="panel__subtitle">Habilidades</h2>
+        <ul class="chip-list">
+          @for (ability of pkm.abilities; track ability) {
+            <li class="chip">{{ ability }}</li>
+          }
+        </ul>
 
-  <section class="detail-stats" aria-label="Estatísticas base">
-    <h3 class="detail-subtitle">Stats</h3>
-    <table>
-      <thead>
-        <tr>
-          <th scope="col">Status</th>
-          <th scope="col">Valor</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (stat of pkm.stats; track stat.name) {
-          <tr>
-            <th scope="row">{{ stat.name }}</th>
-            <td>{{ stat.value }}</td>
-          </tr>
+        <h2 class="panel__subtitle">Reprodução</h2>
+        <ul class="chip-list">
+          @for (group of breeding()?.eggGroups ?? []; track group) {
+            <li class="chip">{{ group }}</li>
+          }
+        </ul>
+        <p class="panel__breeding">
+          Crescimento: {{ breeding()?.growthRate }} · {{ breeding()?.hatchSteps }} passos p/ chocar
+        </p>
+      </section>
+    }
+
+    @case ('status') {
+      <section class="panel" aria-label="Status base">
+        <ul class="stat-list">
+          @for (stat of pkm.stats; track stat.name) {
+            <li class="stat">
+              <span class="stat__name">{{ stat.name }}</span>
+              <span class="stat__track" aria-hidden="true">
+                <span
+                  class="stat__fill"
+                  [style.width.%]="stat.value > 100 ? 100 : stat.value"
+                  [style.background]="statColor(stat.value)"
+                ></span>
+              </span>
+              <span class="stat__value">{{ stat.value }}</span>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+
+    @case ('evolucao') {
+      <section class="panel" aria-label="Cadeia de evolução" aria-live="polite">
+        @if (isEvolutionLoading()) {
+          <p>Carregando evolução...</p>
+        } @else if (evolution().length > 1) {
+          <ol class="evolution">
+            @for (step of evolution(); track step.id) {
+              @if (!$first) {
+                <li class="evolution__arrow" aria-hidden="true">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M5 12h14"/><path d="m13 6 6 6-6 6"/>
+                  </svg>
+                </li>
+              }
+              <li class="evolution__step">
+                <a [routerLink]="['/pokemon', step.id]" class="evolution__link" [attr.aria-label]="'Ver ' + step.name">
+                  <img class="evolution__image" [src]="step.imageUrl" [alt]="step.name" loading="lazy" />
+                  <span class="evolution__name">{{ step.name }}</span>
+                </a>
+              </li>
+            }
+          </ol>
+        } @else {
+          <p>Este Pokémon não evoluiu. ✨</p>
         }
-      </tbody>
-    </table>
-  </section>
+      </section>
+    }
+  }
 }

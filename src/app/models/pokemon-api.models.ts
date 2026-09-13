@@ -50,3 +50,43 @@ export interface PokemonTypeDetail {
     pokemon: NamedApiResource;
   }[];
 }
+
+export interface PokemonSpecies {
+  name: string;
+  egg_groups: NamedApiResource[];
+  hatch_counter: number;
+  growth_rate: NamedApiResource;
+  habitat: NamedApiResource | null;
+  genera: {
+    genus: string;
+    language: NamedApiResource;
+  }[];
+  flavor_text_entries: {
+    flavor_text: string;
+    language: NamedApiResource;
+  }[];
+}
+
+export interface TypeDamageRelations {
+  double_damage_from: NamedApiResource[];
+  half_damage_from: NamedApiResource[];
+  no_damage_from: NamedApiResource[];
+}
+
+export interface PokemonTypeDetailFull {
+  damage_relations: TypeDamageRelations;
+  pokemon: {
+    pokemon: NamedApiResource;
+  }[];
+}
+
+export interface PokemonEvolution {
+  id: number;
+  chain: PokemonChain;
+}
+
+export interface PokemonChain {
+  is_baby: boolean;
+  species: NamedApiResource;
+  evolves_to: PokemonChain[];
+}

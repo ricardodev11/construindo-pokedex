@@ -1,8 +1,14 @@
 import { Routes } from '@angular/router';
-import { Pokedex } from './pages/pokedex/pokedex';
+import { Home } from './pages/home/home';
 
 export const routes: Routes = [
-  { path: '', component: Pokedex },
+  { path: '', component: Home, title: 'Pokédex' },
+  {
+    path: 'favorites',
+    loadComponent: () =>
+      import('./pages/favorites/favorites').then((m) => m.Favorites),
+    title: 'Favoritos',
+  },
   {
     path: 'pokemon/:id',
     loadComponent: () =>

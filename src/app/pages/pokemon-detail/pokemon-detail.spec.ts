@@ -8,6 +8,44 @@ import {
 import { PokemonDetail } from './pokemon-detail';
 import { PokemonDetail as PokemonDetailDto } from '../../models/pokemon-api.models';
 
+const detailFixture = {
+  id: 25,
+  name: 'pikachu',
+  height: 4,
+  weight: 60,
+  sprites: {
+    front_default: 'http://img.example/front.png',
+    other: {
+      'official-artwork': { front_default: 'http://img.example/art.png' },
+    },
+  },
+  types: [{ slot: 1, type: { name: 'electric' } }],
+  abilities: [{ is_hidden: false, slot: 1, ability: { name: 'static' } }],
+  stats: [{ base_stat: 35, effort: 0, stat: { name: 'hp' } }],
+} as PokemonDetailDto;
+
+const speciesFixture = {
+  name: 'pikachu',
+  egg_groups: [],
+  hatch_counter: 0,
+  growth_rate: { name: 'medium-fast', url: 'u' },
+  habitat: null,
+  genera: [],
+  flavor_text_entries: [],
+};
+
+const chainFixture = {
+  id: 25,
+  chain: {
+    is_baby: false,
+    species: {
+      name: 'pikachu',
+      url: 'https://pokeapi.co/api/v2/pokemon-species/25/',
+    },
+    evolves_to: [],
+  },
+};
+
 describe('PokemonDetail', () => {
   let component: PokemonDetail;
   let fixture: ComponentFixture<PokemonDetail>;
@@ -33,43 +71,55 @@ describe('PokemonDetail', () => {
     httpMock.verify();
   });
 
-  it('carrega o detalhe do Pokémon a partir do id', () => {
+  it('carrega detalhe, espécie e evolução a partir do id', () => {
     fixture.detectChanges();
 
-    const req = httpMock.expectOne(
-      'https://pokeapi.co/api/v2/pokemon/25',
-    );
+    const req = httpMock.expectOne('https://pokeapi.co/api/v2/pokemon/25');
     expect(req.request.method).toBe('GET');
-    req.flush({
-      id: 25,
-      name: 'pikachu',
-      height: 4,
-      weight: 60,
-      sprites: {
-        front_default: 'http://img.example/front.png',
-        other: {
-          'official-artwork': { front_default: 'http://img.example/art.png' },
-        },
-      },
-      types: [{ slot: 1, type: { name: 'electric' } }],
-      abilities: [
-        { is_hidden: false, slot: 1, ability: { name: 'static' } },
-      ],
-      stats: [{ base_stat: 35, effort: 0, stat: { name: 'hp' } }],
-    } as PokemonDetailDto);
+    req.flush(detailFixture);
+
+    const speciesReq = httpMock.expectOne(
+      'https://pokeapi.co/api/v2/pokemon-species/25',
+    );
+    speciesReq.flush(speciesFixture);
+
+    const chainReq = httpMock.expectOne(
+      'https://pokeapi.co/api/v2/evolution-chain/25',
+    );
+    chainReq.flush(chainFixture);
 
     expect(component.pokemon()).not.toBeNull();
     expect(component.pokemon()?.name).toBe('pikachu');
     expect(component.pokemon()?.heightMeters).toBe(0.4);
+    expect(component.breeding()).not.toBeNull();
+    expect(component.evolution()).toHaveLength(1);
+  });
+
+  it('alterna entre as abas de informação', () => {
+    fixture.detectChanges();
+
+    httpMock.expectOne('https://pokeapi.co/api/v2/pokemon/25').flush(detailFixture);
+    httpMock.expectOne('https://pokeapi.co/api/v2/pokemon-species/25').flush(speciesFixture);
+    httpMock.expectOne('https://pokeapi.co/api/v2/evolution-chain/25').flush(chainFixture);
+
+    component.activeTab.set('status');
+    fixture.detectChanges();
+
+    const statusPanel: HTMLElement | null =
+      fixture.nativeElement.querySelector('.stat-list');
+
+    expect(statusPanel).not.toBeNull();
+    expect(statusPanel?.textContent).toContain('hp');
+    expect(statusPanel?.textContent).toContain('35');
   });
 
   it('marca como não encontrado quando a API responde 404', () => {
     fixture.detectChanges();
 
-    const req = httpMock.expectOne(
-      'https://pokeapi.co/api/v2/pokemon/25',
-    );
-    req.flush(
+    httpMock
+      .expectOne('https://pokeapi.co/api/v2/pokemon-species/25')
+      .flush(speciesFixture);
+    httpMock.expectOne('https://pokeapi.co/api/v2/pokemon/25').flush(
       { message: 'Not Found' },
       { status: 404, statusText: 'Not Found' },
     );

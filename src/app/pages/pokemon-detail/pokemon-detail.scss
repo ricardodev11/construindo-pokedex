@@ -9,6 +9,8 @@
 }
 
 .hero__inner {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: flex-start;
 }
@@ -81,6 +83,7 @@
   justify-content: center;
   margin-top: -96px;
   filter: drop-shadow(0 12px 24px rgb(0 0 0 / 0.18));
+  pointer-events: none;
 }
 
 .artwork__image {

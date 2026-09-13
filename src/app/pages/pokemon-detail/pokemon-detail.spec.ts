@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Location } from '@angular/common';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import {
   HttpTestingController,
@@ -147,5 +147,40 @@ describe('PokemonDetail', () => {
     backButton?.click();
 
     expect(backSpy).toHaveBeenCalled();
+  });
+
+  it('vai para a home quando o histórico não se move', () => {
+    fixture.detectChanges();
+
+    httpMock.expectOne('https://pokeapi.co/api/v2/pokemon/25').flush(detailFixture);
+    httpMock
+      .expectOne('https://pokeapi.co/api/v2/pokemon-species/25')
+      .flush(speciesFixture);
+    httpMock.expectOne('https://pokeapi.co/api/v2/evolution-chain/25').flush(chainFixture);
+    fixture.detectChanges();
+
+    const router = TestBed.inject(Router);
+    const location = TestBed.inject(Location);
+    const urlSpy = vi
+      .spyOn(router as unknown as { url: string }, 'url', 'get')
+      .mockReturnValue('/pokemon/25');
+    const navSpy = vi.spyOn(router, 'navigateByUrl');
+    const backSpy = vi.spyOn(location, 'back');
+
+    const backButton: HTMLButtonElement | null =
+      fixture.nativeElement.querySelector('.hero__back');
+
+    vi.useFakeTimers();
+    try {
+      backButton?.click();
+      expect(backSpy).toHaveBeenCalled();
+      vi.advanceTimersByTime(500);
+      expect(navSpy).toHaveBeenCalledWith('/');
+    } finally {
+      vi.useRealTimers();
+      urlSpy.mockRestore();
+      navSpy.mockRestore();
+      backSpy.mockRestore();
+    }
   });
 });

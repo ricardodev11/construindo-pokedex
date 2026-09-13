@@ -1,6 +1,14 @@
 import { Location } from '@angular/common';
-import { Component, computed, effect, inject, input, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import {
+  Component,
+  computed,
+  effect,
+  inject,
+  input,
+  OnDestroy,
+  signal,
+} from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
 import { catchError, forkJoin, map, of } from 'rxjs';
 import { DEFAULT_TYPE_COLOR, TYPE_COLORS } from '../../constants/pokemon-types';
 import { PokemonApiService } from '../../core/services/pokemon-api.service';
@@ -20,11 +28,13 @@ type DetailTab = 'sobre' | 'status' | 'evolucao';
   styleUrl: './pokemon-detail.scss',
   templateUrl: './pokemon-detail.html',
 })
-export class PokemonDetail {
+export class PokemonDetail implements OnDestroy {
   readonly id = input.required<string>();
 
   private readonly api = inject(PokemonApiService);
   private readonly location = inject(Location);
+  private readonly router = inject(Router);
+  private backTimer: ReturnType<typeof setTimeout> | null = null;
   protected readonly favorites = inject(FavoritesService);
 
   readonly pokemon = signal<ReturnType<typeof toPokemonDetailModel> | null>(null);
@@ -115,7 +125,25 @@ export class PokemonDetail {
   }
 
   goBack(): void {
+    const before = this.router.url;
     this.location.back();
+    if (before === '/') {
+      return;
+    }
+    if (this.backTimer !== null) {
+      clearTimeout(this.backTimer);
+    }
+    this.backTimer = setTimeout(() => {
+      if (this.router.url === before) {
+        void this.router.navigateByUrl('/');
+      }
+    }, 400);
+  }
+
+  ngOnDestroy(): void {
+    if (this.backTimer !== null) {
+      clearTimeout(this.backTimer);
+    }
   }
 
   typeColor(name: string): string {

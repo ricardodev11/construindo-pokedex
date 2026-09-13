@@ -1,0 +1,90 @@
+.detail-nav {
+  margin-bottom: 16px;
+}
+
+.detail-card {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.detail-visual {
+  flex: 1 1 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.detail-visual img {
+  width: 100%;
+  max-width: 320px;
+  height: auto;
+}
+
+.detail-info {
+  flex: 1 1 280px;
+}
+
+.detail-id {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.detail-name {
+  text-transform: capitalize;
+  margin: 4px 0 8px;
+}
+
+.detail-types {
+  display: flex;
+  gap: 8px;
+  list-style: none;
+  padding: 0;
+}
+
+.type-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 999px;
+  font-size: 12px;
+  text-transform: capitalize;
+}
+
+.detail-data {
+  display: flex;
+  gap: 24px;
+}
+
+.detail-data dt {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.detail-data dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.detail-subtitle {
+  margin: 16px 0 8px;
+  font-size: 16px;
+}
+
+.detail-abilities {
+  list-style: none;
+  padding: 0;
+  text-transform: capitalize;
+}
+
+.detail-stats table {
+  border-collapse: collapse;
+}
+
+.detail-stats th,
+.detail-stats td {
+  padding: 6px 12px;
+  border: 1px solid #e5e7eb;
+  text-align: left;
+  text-transform: capitalize;
+}

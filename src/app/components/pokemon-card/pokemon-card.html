@@ -1,0 +1,21 @@
+<li>
+  <a
+    class="pokemon-card"
+    [routerLink]="['/pokemon', pokemon().id]"
+    [attr.aria-label]="'Ver detalhes de ' + pokemon().name"
+  >
+    <span class="pokemon-card__id">#{{ pokemon().id }}</span>
+
+    @if (!imageFailed()) {
+      <img
+        class="pokemon-card__image"
+        [src]="pokemon().imageUrl"
+        [alt]="'Ilustração do Pokémon ' + pokemon().name"
+        loading="lazy"
+        (error)="imageFailed.set(true)"
+      />
+    }
+
+    <span class="pokemon-card__name">{{ pokemon().name }}</span>
+  </a>
+</li>

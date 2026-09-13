@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { Location } from '@angular/common';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import {
@@ -125,5 +126,26 @@ describe('PokemonDetail', () => {
     );
 
     expect(component.isNotFound()).toBe(true);
+  });
+
+  it('botão de voltar usa o histórico do navegador', () => {
+    fixture.detectChanges();
+
+    httpMock.expectOne('https://pokeapi.co/api/v2/pokemon/25').flush(detailFixture);
+    httpMock
+      .expectOne('https://pokeapi.co/api/v2/pokemon-species/25')
+      .flush(speciesFixture);
+    httpMock.expectOne('https://pokeapi.co/api/v2/evolution-chain/25').flush(chainFixture);
+    fixture.detectChanges();
+
+    const location = TestBed.inject(Location);
+    const backSpy = vi.spyOn(location, 'back');
+
+    const backButton: HTMLButtonElement | null =
+      fixture.nativeElement.querySelector('.hero__back');
+    expect(backButton).not.toBeNull();
+    backButton?.click();
+
+    expect(backSpy).toHaveBeenCalled();
   });
 });

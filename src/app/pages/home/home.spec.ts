@@ -81,6 +81,55 @@ describe('Home', () => {
     expect(component.types().map((type) => type.name)).toEqual(['fire']);
   });
 
+  it('mantém o skeleton até os Pokémon chegarem mesmo se os tipos responderem antes', () => {
+    fixture.detectChanges();
+    httpMock.expectOne('https://pokeapi.co/api/v2/type').flush({
+      count: 1,
+      next: null,
+      previous: null,
+      results: [{ name: 'fire', url: 'u-fire' }],
+    });
+    fixture.detectChanges();
+
+    expect(component.isLoading()).toBe(true);
+    expect(component.filteredCards()).toHaveLength(0);
+    expect(fixture.nativeElement.querySelector('.skeleton-card')).not.toBeNull();
+
+    httpMock
+      .expectOne('https://pokeapi.co/api/v2/pokemon?limit=20&offset=0')
+      .flush({
+        count: 2,
+        next: null,
+        previous: null,
+        results: generateItems(2),
+      });
+    fixture.detectChanges();
+
+    expect(component.isLoading()).toBe(false);
+    expect(component.filteredCards()).toHaveLength(2);
+    expect(fixture.nativeElement.querySelectorAll('.pokemon-card')).toHaveLength(2);
+  });
+
+  it('falha ao carregar os tipos não impede a lista de Pokémon', () => {
+    fixture.detectChanges();
+    httpMock
+      .expectOne('https://pokeapi.co/api/v2/type')
+      .flush(null, { status: 500, statusText: 'Erro' });
+    httpMock
+      .expectOne('https://pokeapi.co/api/v2/pokemon?limit=20&offset=0')
+      .flush({
+        count: 2,
+        next: null,
+        previous: null,
+        results: generateItems(2),
+      });
+    fixture.detectChanges();
+
+    expect(component.isLoading()).toBe(false);
+    expect(component.filteredCards()).toHaveLength(2);
+    expect(component.typeError()).toContain('tipos');
+  });
+
   it('filtra pela lista completa do tipo sem depender do que carregou', () => {
     flushInitial();
     fixture.detectChanges();

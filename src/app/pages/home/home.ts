@@ -211,9 +211,11 @@ export class Home implements OnInit {
         this.types.set(
           response.results.filter((type) => !this.EXCLUDED_TYPES.has(type.name)),
         );
-        this.isLoading.set(false);
+        this.typeError.set(null);
       },
-      error: () => this.handleLoadError(),
+      error: () => {
+        this.typeError.set('Não foi possível carregar os tipos agora.');
+      },
     });
   }
 

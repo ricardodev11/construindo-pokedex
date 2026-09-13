@@ -1,3 +1,4 @@
+import { Location } from '@angular/common';
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { catchError, forkJoin, map, of } from 'rxjs';
@@ -23,6 +24,7 @@ export class PokemonDetail {
   readonly id = input.required<string>();
 
   private readonly api = inject(PokemonApiService);
+  private readonly location = inject(Location);
   protected readonly favorites = inject(FavoritesService);
 
   readonly pokemon = signal<ReturnType<typeof toPokemonDetailModel> | null>(null);
@@ -110,6 +112,10 @@ export class PokemonDetail {
       imageUrl: pokemon.imageUrl,
       formattedId: pokemon.formattedId,
     });
+  }
+
+  goBack(): void {
+    this.location.back();
   }
 
   typeColor(name: string): string {

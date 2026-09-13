@@ -29,5 +29,9 @@
     "prettier": "^3.8.1",
     "typescript": "~6.0.2",
     "vitest": "^4.0.8"
+  },
+  "allowScripts": {
+    "msgpackr-extract@3.0.4": true,
+    "lmdb@3.5.6": true
   }
 }

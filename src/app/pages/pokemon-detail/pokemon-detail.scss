@@ -12,7 +12,12 @@
   position: relative;
   z-index: 1;
   display: flex;
-  align-items: flex-start;
+  flex-direction: column;
+}
+
+.hero__actions {
+  display: flex;
+  justify-content: space-between;
 }
 
 .hero__back,
@@ -30,7 +35,6 @@
 }
 
 .hero__fav {
-  margin-left: auto;
   color: #fff;
 }
 
@@ -39,9 +43,8 @@
 }
 
 .hero__info {
-  position: absolute;
-  left: var(--space-5);
-  bottom: var(--space-3);
+  margin-top: var(--space-3);
+  text-align: center;
 }
 
 .hero__id {
@@ -61,6 +64,7 @@
 
 .hero__types {
   display: flex;
+  justify-content: center;
   gap: var(--space-2);
   margin: var(--space-2) 0 0;
   padding: 0;

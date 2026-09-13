@@ -40,6 +40,13 @@ export class PokemonDetail {
 
   constructor() {
     effect(() => {
+      const pokemon = this.pokemon();
+      document.title = pokemon
+        ? `${pokemon.name} · Pokédex`
+        : 'Pokédex';
+    });
+
+    effect(() => {
       void this.id();
       this.load();
     });

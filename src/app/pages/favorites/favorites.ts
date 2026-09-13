@@ -12,6 +12,10 @@ import { PokemonCard } from '../../models/pokemon.models';
 export class Favorites {
   protected readonly favorites = inject(FavoritesService);
 
+  constructor() {
+    document.title = 'Pokédex · Favoritos';
+  }
+
   toggleFavorite(card: PokemonCard): void {
     this.favorites.toggle(card);
   }

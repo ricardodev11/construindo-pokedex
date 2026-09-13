@@ -162,7 +162,7 @@ describe('Home', () => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 
-  it('busca por número consulta a API após o debounce e insere o card', async () => {
+  it('busca por número consulta a API após o debounce e mostra o card', async () => {
     vi.useFakeTimers();
     try {
       flushInitial();
@@ -182,26 +182,97 @@ describe('Home', () => {
         types: [],
         abilities: [],
       });
+      fixture.detectChanges();
 
-      expect(component.allPokemons()[0].name).toBe('charmander');
+      expect(component.searchStatus()).toBe('found');
       expect(component.filteredCards()[0].name).toBe('charmander');
+      expect(component.allPokemons()[0].name).toBe('charmander');
+      expect(component.hasActiveQuery()).toBe(true);
     } finally {
       vi.useRealTimers();
     }
   });
 
-  it('mostra estado vazio com busca que não encontra nada', () => {
-    flushInitial();
-    fixture.detectChanges();
+  it('busca por nome consulta a API e mostra o card encontrado', async () => {
+    vi.useFakeTimers();
+    try {
+      flushInitial();
+      fixture.detectChanges();
 
-    component.searchQuery.set('mewtwo');
-    fixture.detectChanges();
+      component.searchQuery.set('pikachu');
+      await vi.advanceTimersByTimeAsync(300);
 
-    expect(component.filteredCards()).toHaveLength(0);
+      const searchReq = httpMock.expectOne(
+        'https://pokeapi.co/api/v2/pokemon/pikachu',
+      );
+      searchReq.flush({
+        id: 25,
+        name: 'pikachu',
+        sprites: {
+          front_default: 'f.png',
+          other: { 'official-artwork': { front_default: 'art.png' } },
+        },
+        types: [],
+        abilities: [],
+      });
+      fixture.detectChanges();
 
-    const stateBox: HTMLElement | null =
-      fixture.nativeElement.querySelector('.state-message');
-    expect(stateBox?.textContent).toContain('Nenhum Pokémon encontrado');
+      expect(component.searchStatus()).toBe('found');
+      expect(component.filteredCards()).toHaveLength(1);
+      expect(component.filteredCards()[0].name).toBe('pikachu');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('mostra estado vazio quando a API responde 404 na busca', async () => {
+    vi.useFakeTimers();
+    try {
+      flushInitial();
+      fixture.detectChanges();
+
+      component.searchQuery.set('mewthree');
+      await vi.advanceTimersByTimeAsync(300);
+
+      httpMock
+        .expectOne('https://pokeapi.co/api/v2/pokemon/mewthree')
+        .flush(null, { status: 404, statusText: 'Not Found' });
+      fixture.detectChanges();
+
+      expect(component.searchStatus()).toBe('not-found');
+      expect(component.filteredCards()).toHaveLength(0);
+
+      const stateBox: HTMLElement | null =
+        fixture.nativeElement.querySelector('.state-message');
+      expect(stateBox?.textContent).toContain('Nenhum Pokémon encontrado');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('mostra erro de rede da busca como estado separado', async () => {
+    vi.useFakeTimers();
+    try {
+      flushInitial();
+      fixture.detectChanges();
+
+      component.searchQuery.set('abra');
+      await vi.advanceTimersByTimeAsync(300);
+
+      httpMock
+        .expectOne('https://pokeapi.co/api/v2/pokemon/abra')
+        .error(new ErrorEvent('offline'));
+      fixture.detectChanges();
+
+      expect(component.searchStatus()).toBe('error');
+      expect(component.filteredCards()).toHaveLength(0);
+
+      const stateBox: HTMLElement | null =
+        fixture.nativeElement.querySelector('.state-message');
+      expect(stateBox?.textContent).toContain('Não foi possível buscar');
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('favorita e desfavorita um Pokémon do card', () => {

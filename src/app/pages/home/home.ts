@@ -1,13 +1,14 @@
 import {
   Component,
   computed,
+  effect,
   inject,
   OnInit,
   signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
-import { catchError, debounceTime, distinctUntilChanged, filter, map, of, switchMap } from 'rxjs';
+import { debounceTime, distinctUntilChanged, map, of, switchMap } from 'rxjs';
 
 import { PokemonCardComponent } from '../../components/pokemon-card/pokemon-card';
 import { DEFAULT_TYPE_COLOR, TYPE_COLORS } from '../../constants/pokemon-types';
@@ -40,6 +41,10 @@ export class Home implements OnInit {
   readonly typeLoading = signal<string | null>(null);
   readonly typeError = signal<string | null>(null);
   readonly searchQuery = signal('');
+  readonly searchStatus = signal<
+    'idle' | 'loading' | 'found' | 'not-found' | 'error'
+  >('idle');
+  readonly searchResultCard = signal<PokemonCard | null>(null);
   readonly selectedTypes = signal<string[]>([]);
   readonly types = signal<{ name: string }[]>([]);
   readonly visibleCount = signal(this.PAGE_SIZE);
@@ -50,22 +55,35 @@ export class Home implements OnInit {
     .pipe(
       debounceTime(300),
       map((query) => query.trim()),
-      filter((query) => /^\d+$/.test(query)),
       distinctUntilChanged(),
-      switchMap((query) =>
-        this.api.getPokemonByIdOrName(Number(query)).pipe(
+      switchMap((query) => {
+        this.searchResultCard.set(null);
+        if (!query) {
+          this.searchStatus.set('idle');
+          return of(null);
+        }
+        this.searchStatus.set('loading');
+        return this.api.getPokemonByIdOrName(query).pipe(
           map((detail) => toPokemonCardFromDetail(detail)),
-          catchError(() => of(null)),
-        ),
-      ),
+        );
+      }),
       takeUntilDestroyed(),
     )
-    .subscribe((card) => {
-      if (card) {
+    .subscribe({
+      next: (card) => {
+        if (!card) {
+          return;
+        }
+        this.searchResultCard.set(card);
+        this.searchStatus.set('found');
         this.allPokemons.update((list) =>
           list.some((item) => item.id === card.id) ? list : [card, ...list],
         );
-      }
+      },
+      error: (err: { status?: number }) => {
+        this.searchResultCard.set(null);
+        this.searchStatus.set(err?.status === 404 ? 'not-found' : 'error');
+      },
     });
 
   private readonly typeCards = computed<PokemonCard[] | null>(() => {
@@ -87,30 +105,45 @@ export class Home implements OnInit {
     );
   });
 
-  private readonly matchedCards = computed(() => {
-    const base = this.typeCards() ?? this.allPokemons();
-    const query = this.searchQuery().trim().toLowerCase();
+  private readonly trimmedQuery = computed(() => this.searchQuery().trim());
+  readonly hasActiveQuery = computed(() => this.trimmedQuery().length > 0);
 
-    if (!query) {
-      return base;
-    }
-    return base.filter(
-      (card) =>
-        card.name.includes(query) || String(card.id).includes(query),
-    );
+  readonly baseCards = computed<PokemonCard[]>(() => {
+    const base = this.typeCards() ?? this.allPokemons();
+    return this.typeCards() ? base.slice(0, this.visibleCount()) : base;
   });
 
-  readonly filteredCards = computed(() =>
-    this.typeCards()
-      ? this.matchedCards().slice(0, this.visibleCount())
-      : this.matchedCards(),
-  );
+  readonly filteredCards = computed<PokemonCard[]>(() => {
+    if (this.hasActiveQuery()) {
+      const card = this.searchResultCard();
+      if (!card) {
+        return [];
+      }
+      const members = this.typeCards();
+      if (members && !members.some((item) => item.id === card.id)) {
+        return [];
+      }
+      return [card];
+    }
+    return this.baseCards();
+  });
 
-  readonly hasMore = computed(() =>
-    this.typeCards()
-      ? this.matchedCards().length > this.visibleCount()
-      : this.offset() < this.totalCount(),
-  );
+  readonly hasMore = computed(() => {
+    if (this.hasActiveQuery()) {
+      return false;
+    }
+    if (this.typeCards()) {
+      return this.typeCards()!.length > this.visibleCount();
+    }
+    return this.offset() < this.totalCount();
+  });
+
+  constructor() {
+    effect(() => {
+      const query = this.searchQuery().trim();
+      document.title = query ? `Buscando "${query}" · Pokédex` : 'Pokédex';
+    });
+  }
 
   ngOnInit(): void {
     this.loadTypes();
@@ -225,6 +258,10 @@ export class Home implements OnInit {
     this.searchQuery.set('');
     this.selectedTypes.set([]);
     this.visibleCount.set(this.PAGE_SIZE);
+  }
+
+  clearSearch(): void {
+    this.searchQuery.set('');
   }
 
   typeColor(name: string): string {

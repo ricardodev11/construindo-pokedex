@@ -30,7 +30,7 @@
         [(ngModel)]="searchQuery"
       />
       <p id="home-search-hint" class="visually-hidden">
-        A busca filtra os Pokémon já carregados; números são buscados também na API.
+        A busca consulta a PokéAPI por nome ou número, com 3 letras de intervalo entre digitações.
       </p>
     </div>
   </header>
@@ -52,7 +52,7 @@
     </nav>
   }
 
-  @if (isLoading() || typeLoading()) {
+  @if (isLoading() || typeLoading() || searchStatus() === 'loading') {
     <div class="card-grid" aria-label="Carregando Pokémon">
       @for (skeleton of skeletonCards; track skeleton) {
         <div class="skeleton-card"></div>
@@ -63,28 +63,51 @@
       <p>{{ loadError() }}</p>
       <button type="button" class="btn-primary" (click)="load()">Tentar novamente</button>
     </div>
+  } @else if (searchStatus() === 'error') {
+    <div class="state-message" role="alert">
+      <p>Não foi possível buscar agora. Verifique sua conexão e tente de novo.</p>
+      <div class="state-message__actions">
+        <button type="button" class="btn-secondary" (click)="clearSearch()">
+          Limpar busca
+        </button>
+      </div>
+    </div>
   } @else if (!filteredCards().length) {
-    <div class="state-message">
-      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><circle cx="12" cy="12" r="3"/>
-      </svg>
-      <p>Nenhum Pokémon encontrado.</p>
-      @if (searchQuery() || selectedTypes().length) {
-        <p class="state-message__hint">
-          O filtro considera os Pokémon já carregados.
-        </p>
+    @if (searchStatus() === 'not-found') {
+      <div class="state-message">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><circle cx="12" cy="12" r="3"/>
+        </svg>
+        <p>Nenhum Pokémon encontrado para "{{ searchQuery().trim() }}".</p>
         <div class="state-message__actions">
-          @if (hasMore()) {
-            <button type="button" class="btn-primary" [disabled]="isLoadMore()" (click)="loadMore()">
-              {{ isLoadMore() ? 'Carregando…' : 'Carregar mais Pokémon' }}
-            </button>
-          }
-          <button type="button" class="btn-secondary" (click)="clearEverything()">
-            Limpar busca e filtros
+          <button type="button" class="btn-secondary" (click)="clearSearch()">
+            Limpar busca
           </button>
         </div>
-      }
-    </div>
+      </div>
+    } @else {
+      <div class="state-message">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><circle cx="12" cy="12" r="3"/>
+        </svg>
+        <p>Nenhum Pokémon encontrado.</p>
+        @if (searchQuery() || selectedTypes().length) {
+          <p class="state-message__hint">
+            O filtro considera os Pokémon já carregados.
+          </p>
+          <div class="state-message__actions">
+            @if (hasMore()) {
+              <button type="button" class="btn-primary" [disabled]="isLoadMore()" (click)="loadMore()">
+                {{ isLoadMore() ? 'Carregando…' : 'Carregar mais Pokémon' }}
+              </button>
+            }
+            <button type="button" class="btn-secondary" (click)="clearEverything()">
+              Limpar busca e filtros
+            </button>
+          </div>
+        }
+      </div>
+    }
   } @else {
     <ul class="card-grid">
       @for (card of filteredCards(); track card.id) {
@@ -100,14 +123,16 @@
       <p class="notice" role="alert">{{ typeError() }}</p>
     }
 
-    <div class="load-more">
-      @if (hasMore()) {
-        <button type="button" class="btn-primary" [disabled]="isLoadMore()" (click)="loadMore()">
-          {{ isLoadMore() ? 'Carregando…' : 'Carregar mais' }}
-        </button>
-      } @else {
-        <p class="notice">Você viu todos os Pokémon! 🎉</p>
-      }
-    </div>
+    @if (!hasActiveQuery()) {
+      <div class="load-more">
+        @if (hasMore()) {
+          <button type="button" class="btn-primary" [disabled]="isLoadMore()" (click)="loadMore()">
+            {{ isLoadMore() ? 'Carregando…' : 'Carregar mais' }}
+          </button>
+        } @else {
+          <p class="notice">Você viu todos os Pokémon! 🎉</p>
+        }
+      </div>
+    }
   }
 </div>
